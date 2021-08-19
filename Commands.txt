@@ -1,0 +1,5 @@
+//FLOW LIST
+run vaultQuery contractStateType: com.template.states.PatientDataState
+flow start SaveDataPatientFlow$ReqFlow patientData: {idPaciente: 1, nomePaciente: Juan, idade: 33, centroSaude: PartyB}
+flow start EnviarPatientDataFlow$ReqFlow historicoId: 9b759977-7b11-4ae0-a86e-320c2895bf9c, para: PartyB
+NEW

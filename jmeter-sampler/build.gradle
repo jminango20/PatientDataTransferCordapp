@@ -1,0 +1,78 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm'
+    id 'java'
+}
+
+group 'com.template'
+version '1.0'
+
+sourceSets {
+    main {
+        resources {
+            srcDir rootProject.file("config/dev")
+        }
+    }
+}
+
+repositories {
+    ext.artifactory_contextUrl = 'https://software.r3.com/artifactory'
+    ext.artifactory_user = project.ext.getProperty('cordaArtifactoryUsername')
+    ext.artifactory_password = project.ext.getProperty('cordaArtifactoryPassword')
+
+    if ( ext.artifactory_user != null && ext.artifactory_password != null ){
+        maven{
+            url "$artifactory_contextUrl/corda-enterprise"
+            credentials {
+                username artifactory_user
+                password artifactory_password
+            }
+        }
+
+        maven { url "$artifactory_contextUrl/corda-enterprise-for-customers"
+            credentials {
+                username artifactory_user
+                password artifactory_password
+            }
+        }
+    }
+
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+
+    ext.jmeterVersion = 3.3
+    ext.cordaVersion = "4.8"
+    ext.cordaOsVersion = "4.8"
+
+    // Kotlin dependency for the Kotlin example
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+
+    // The jmeter-corda package has the base classes that form the glue between JMeter and Corda. All Corda performance
+    // samplers need to depend on thi
+    compile group: "com.r3.corda", name: "jmeter-corda", version: cordaVersion
+
+    // Any sampler needs to depend on Corda RPC to invoke flows - the RPC client is used to actually drive the node
+    compile group: "com.r3.corda", name: "corda-rpc", version: cordaVersion
+
+    // Dependency on Apache JMeter
+    compile group: 'org.apache.jmeter', name: 'ApacheJMeter_java', version: jmeterVersion // 'compile' because we extend Java sampler.
+
+    // Dependency on workflows
+    compile project(":workflows")
+
+}
+
+task deploySampler {
+    samplerDeployPath = project.ext.getProperty('samplerDeployPath')
+    doLast {
+        project.sync {
+            from "build/libs"
+            from "../workflows/build/libs"
+            into samplerDeployPath
+            include "*.jar"
+        }
+        println "$samplerDeployPath is synced up wit sampler and dependency JAR files."
+    }
+}
