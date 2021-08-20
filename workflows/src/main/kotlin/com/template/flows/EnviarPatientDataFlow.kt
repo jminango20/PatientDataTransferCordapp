@@ -12,6 +12,7 @@ import net.corda.core.node.services.queryBy
 import net.corda.core.node.services.vault.QueryCriteria
 import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
+import java.time.Instant
 import java.util.*
 
 object EnviarPatientDataFlow {
@@ -40,7 +41,7 @@ object EnviarPatientDataFlow {
 
             //2) Validar para ter certeza de que não estamos transmitindo informação de outro centroSaude.
             requireThat {
-                "Eu tenho que ser o centroSaude emissor do patientData para enviar para outro centroSaude" using (historicoState.patientData.centroSaude == ourIdentity)
+                "Eu tenho que ser o centroSaude emissor do patientData para enviar para outro centroSaude" using (historicoState.patientData.centroSaudeOrigem == ourIdentity)
             }
 
             //3) Precisamos utilizar o mesmo notary que foi utilizado anteriormente para nao ter conflitos
@@ -49,7 +50,7 @@ object EnviarPatientDataFlow {
             //4) Criar o novo estado do State
             //Como o nosso State é um “data class”, temos o método copy, que permite criar uma cópia do objeto alterando
             // apenas as informações necessárias.
-            val novoHistoricoState = historicoState.copy(centroSaudeReceptoras = historicoState.centroSaudeReceptoras + para)
+            val novoHistoricoState = historicoState.copy(centroSaudeReceptoras = historicoState.centroSaudeReceptoras + para, dataEnvio = historicoState.dataEnvio + Instant.now())
 
             //5) Criamos o comando
             val comando = Command(PatientDataContract.Commands.EnviarPatientData(), novoHistoricoState.participants.map { it.owningKey })
@@ -100,7 +101,7 @@ object EnviarPatientDataFlow {
                 override fun checkTransaction(stx: SignedTransaction) = requireThat{
                     val outputs = stx.coreTransaction.outputsOfType<PatientDataState>()
                     "Tinha que ter recebido um dataPatient historico !" using (outputs.isNotEmpty())
-                    "O state nao pode ser emitido no meu nome." using outputs.all { it.patientData.centroSaude != ourIdentity }
+                    "O state nao pode ser emitido no meu nome." using outputs.all { it.patientData.centroSaudeOrigem != ourIdentity }
                 }
                 //Foi garantido que ninguém está mandando informação nossa, podemos executar este flow e retornar a chamada.
             }

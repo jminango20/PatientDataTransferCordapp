@@ -39,7 +39,7 @@ class GeneratePatientDataFlowTest  {
         val patientData = PatientData(idPaciente = 1,
                                       nomePaciente = "Juan",
                                       idade = 33,
-                                      centroSaude = ijc.info.legalIdentities.first()
+                                      centroSaudeOrigem = ijc.info.legalIdentities.first()
                                      )
 
         val flow = SaveDataPatientFlow.ReqFlow(patientData)

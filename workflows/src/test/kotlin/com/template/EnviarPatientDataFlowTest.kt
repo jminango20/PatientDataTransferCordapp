@@ -4,6 +4,8 @@ import com.template.flows.EnviarPatientDataFlow
 import com.template.flows.SaveDataPatientFlow
 import com.template.model.PatientData
 import com.template.states.PatientDataState
+import net.corda.core.contracts.UniqueIdentifier
+import net.corda.core.identity.AbstractParty
 import net.corda.core.identity.Party
 import net.corda.core.node.services.queryBy
 import net.corda.core.node.services.vault.QueryCriteria
@@ -14,6 +16,7 @@ import net.corda.testing.node.TestCordapp
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+import java.time.Instant
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -43,15 +46,15 @@ class EnviarPatientDataFlowTest  {
 
 
     fun gerarPatientData() : PatientDataState {
-        val disciplina = PatientData(
+        val dataPatient = PatientData(
             idPaciente = 1,
             nomePaciente = "Juan",
-            //val dataInicio: Instant, //Java representa un instante no tempo: Data, Hora, Minuto, Segundo, Milisegundo
             idade = 33,
-            centroSaude = a.info.legalIdentities.first()//No dentro da rede
+            centroSaudeOrigem = a.info.legalIdentities.first()//No dentro da rede
             )
 
-        val flow = SaveDataPatientFlow.ReqFlow(disciplina)
+
+        val flow = SaveDataPatientFlow.ReqFlow(dataPatient)
         val future = a.startFlow(flow)
         network.runNetwork()
 

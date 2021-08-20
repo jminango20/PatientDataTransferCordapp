@@ -12,6 +12,7 @@ import net.corda.core.flows.InitiatingFlow
 import net.corda.core.flows.StartableByRPC
 import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
+import java.time.Instant
 
 
 object SaveDataPatientFlow {
@@ -28,13 +29,14 @@ object SaveDataPatientFlow {
                 //No “FlowLogic” temos “ourIdentity” que é a representação do nosso node na rede.
                 //Com esta validação, certificamos de que ninguém está tentando emitir uma patientData
                 //utilizando o nome de outro centroSaude.
-                "Eu tenho que ser o centroSaude emisor" using (patientData.centroSaude == ourIdentity)
+                "Eu tenho que ser o centroSaude emisor" using (patientData.centroSaudeOrigem == ourIdentity)
             }
 
             //Identifica o notary
             val notary = serviceHub.networkMapCache.notaryIdentities.first()
 
             //Criar o patientDataState que será enviado na transação
+            val dataInicio = Instant.now()
             val patientDataStateGenerate = PatientDataState(patientData)
 
             //Criar o comando, que necessariamente precisa ser o CriarHistoricoEscolar, especificando quais
